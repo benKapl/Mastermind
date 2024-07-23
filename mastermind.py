@@ -1,16 +1,30 @@
 import random
+import logging
 
-from assets import COLORS, COLOR_RESET, CARRE, PASTILLE, RED, WHITE
+from assets import COLORS, COLOR_RESET, CARRE, PASTILLE
 
-def display_colors(colors_unicode: list) -> str:
+logging.basicConfig(level=logging.INFO,
+					format='%(asctime)s - %(levelname)s - %(message)s')
+
+def display_colors(colors_unicode) -> str:
+    """Display a iterable of color_codes into a string to represent the colors in terminal
+
+    Args:
+        colors_unicode (iterable): iterable of color unicodes
+
+    Returns:
+        str: All colors in a single string
+    """
     display = ""
     for color in colors_unicode:
         display += color
     return display
 
 class Game:
+
     def __init__(self) -> None:
-        self.computer_combination = self.generate_combination()
+        self.combination = self.generate_combination()
+        # self.combination = ['\x1b[95m ■ \x1b[00m', '\x1b[95m ■ \x1b[00m', '\x1b[91m ■ \x1b[00m', '\x1b[97m ■ \x1b[00m']
 
     def generate_combination(self) -> list:
         """ Generate 4 random colors
@@ -18,41 +32,51 @@ class Game:
         Returns:
             list: 4 colors
         """
-        return [f"{random.choice(COLORS)} {CARRE} {COLOR_RESET}" for _ in range(4)]
+        return [f"{random.choice(list(COLORS.values()))} {CARRE} {COLOR_RESET}" for _ in range(4)]
     
-    def evaluate_guess(self, guess):
-    ### ATTENTION ###
-    # Ne fonctionne pas lorsqu'il y a plusieurs fois la même couleur identiquement placée
-    # exemple combinaison : rouge, rouge , noir, blanc
-    # exemple tentative :   rouge, rouge, blanc, bleu
-    # retournera :          pastille rouge, pastille blanc
-    # AURAIT DU RETOURNER : pastille rouge, pastille rouge, pastille blanc
+    def prompt_guess(self) -> str:
+        """ Ask the player 4 digits, return the digits converted to colors
+        """
+        while True:
+            guess = input("Veuillez saisir vos 4 chiffres pour les couleurs : ")
+            if len(guess) == 4 and guess.isdigit():
+                try:
+                    return [f"{COLORS[number]} {CARRE} {COLOR_RESET}" for number in guess] # type: ignore
+                except KeyError:
+                    print("Votre saisie est incorrecte...")   
+            else:
+                print("Votre saisie est incorrecte...")
+    
+    def evaluate_guess(self, guess) -> list:
+        """ Indicates the player how close from the combination his guess is
+        """
+        # Create a list in which indications will be added
+        evaluation = []      
+        # Map colors to compare pairs  
+        color_mapping = list(zip(self.combination, guess))
 
-
-    # je zip la combinaison et le guess
-        zipped_list = list(zip(self.computer_combination, guess))
-        # je crée une liste dans laquelle j'incluerai les informations
-        evaluation = []
-        for color_combination, color_guess in zipped_list:
-            # si j'ai la bonne couleur au bon endroit
+        for color_combination, color_guess in color_mapping:
             if color_combination == color_guess:
-                print(f"PERFECT MATCH : {display_colors(color_combination)}, {display_colors(color_guess)}")
-                # j'ajoute une pastille rouge dans ``information``
-                evaluation.append(f"{RED} {PASTILLE} {COLOR_RESET}")
-                # je retire la paire qui match parfaitement
-                zipped_list.remove((color_combination, color_guess))
-                print(f"Mise à jour des couleurs : {zipped_list}")
-                continue
-            else: 
-                print("NO PERFECT MATCH")
-        # je dezip les tuples pour comparer les couleurs restants
-        self.computer_combination, guess = zip(*zipped_list)
-        for color in guess:
-            if color in self.computer_combination:
-                print(f"Simple match: {display_colors(color)}")
-                evaluation.append(f"{WHITE} {PASTILLE} {COLOR_RESET}")
-        
-        return evaluation
+                logging.info(f"PERFECT MATCH : {display_colors(color_combination)} {display_colors(color_guess)}")
+                evaluation.append(f"{COLORS['3']} {PASTILLE} {COLOR_RESET}")
+
+            elif color_guess in self.combination:
+                logging.info(f"Simple match: {display_colors(color_guess)}")
+                evaluation.append(f"{COLORS['5']} {PASTILLE} {COLOR_RESET}")
+
+            else:
+                logging.info("NO MATCH")
+                
+        # Sort indications to return the red dot first and display the result
+        return sorted(evaluation)
+        # return f"Indicateurs: {'' ''.join(sorted(evaluation))}"
+
+    def show_guess_result(self, guess: str, evaluation: list):
+        if evaluation:
+            print(f"{display_colors(guess)}   Indicateurs : {'' ''.join(evaluation)}")
+        else:
+            print(f"{display_colors(guess)}  Aucune correspondance trouvée")
+
 
 
 
@@ -61,14 +85,21 @@ if __name__ == "__main__":
 
     game = Game()
 
-    guess = ['\x1b[95m ■ \x1b[00m', '\x1b[95m ■ \x1b[00m', '\x1b[91m ■ \x1b[00m', '\x1b[97m ■ \x1b[00m']
-
-    a = display_colors(game.computer_combination)
-    b = display_colors(guess)
+    combination = display_colors(game.combination)
 
 
-    print(a)
-    print(b)
+    guess = game.prompt_guess()
+    game.show_guess_result(guess, game.evaluate_guess(guess))
+
+
+    # guess = ['\x1b[95m ■ \x1b[00m', '\x1b[95m ■ \x1b[00m', '\x1b[91m ■ \x1b[00m', '\x1b[97m ■ \x1b[00m']
+
+    # combination = display_colors(game.combination)
+    # b = display_colors(guess)
+
+
+    # print(combination)
+    # print(b)
                               
-    evaluation = game.evaluate_guess(guess)
-    print(display_colors(evaluation))
+    # evaluation = game.evaluate_guess(guess)
+    # print(display_colors(evaluation))
