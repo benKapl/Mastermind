@@ -3,7 +3,7 @@ import random
 import sys
 import time
 
-from assets import COLORS, COMBINATION_ACCOUNT, COLOR_RESET, SQUARE, WHITE_DOT, RED_DOT, DELIMITER, COUNTDOWN, MENU
+from assets import COLORS, combination_account, COLOR_RESET, SQUARE, WHITE_DOT, RED_DOT, DELIMITER, countdown, MENU
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -25,9 +25,9 @@ class Game:
 
     def __init__(self, countdown) -> None:
         self.combination = []
-        self.combination_state = COMBINATION_ACCOUNT
+        self.combination_state = combination_account
         self.generate_combination()
-        self.combination_balance = COMBINATION_ACCOUNT
+        self.combination_balance = combination_account
         self.guess = ""
         self.evaluation = []
         self.countdown = countdown
@@ -154,7 +154,7 @@ T'es MAUVAIS Jack 👎
         """
         retry = input("Souhaitez-vous rejouer ? [Y/n] ").lower()
         if retry in ["y", "yes"]:
-            game = Game(COUNTDOWN)
+            game = Game(countdown)
             game.play()
         elif retry in ["n", "no"]:
             print("A bientôt 👋")

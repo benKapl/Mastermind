@@ -1,11 +1,11 @@
 import time
 
 from mastermind import Game
-from assets import INTRO, COUNTDOWN
+from assets import INTRO, countdown
 
 if __name__ == "__main__":
     print(INTRO)
-    game = Game(COUNTDOWN)
+    game = Game(countdown)
     game.play()
 
 
