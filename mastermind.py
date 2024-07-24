@@ -3,7 +3,7 @@ import logging
 
 from assets import COLORS, COLOR_RESET, CARRE, PASTILLE
 
-logging.basicConfig(level=logging.INFO,
+logging.basicConfig(level=logging.WARNING,
 					format='%(asctime)s - %(levelname)s - %(message)s')
 
 def display_colors(colors_unicode) -> str:
@@ -24,6 +24,9 @@ class Game:
 
     def __init__(self) -> None:
         self.combination = self.generate_combination()
+        self.guess = ""
+        self.evaluation = []
+        self.countdown = 10
         # self.combination = ['\x1b[95m ■ \x1b[00m', '\x1b[95m ■ \x1b[00m', '\x1b[91m ■ \x1b[00m', '\x1b[97m ■ \x1b[00m']
 
     def generate_combination(self) -> list:
@@ -38,44 +41,43 @@ class Game:
         """ Ask the player 4 digits, return the digits converted to colors
         """
         while True:
-            guess = input("Veuillez saisir vos 4 chiffres pour les couleurs : ")
-            if len(guess) == 4 and guess.isdigit():
+            self.guess = input("Veuillez saisir vos 4 chiffres pour les couleurs : ")
+            if len(self.guess) == 4 and self.guess.isdigit():
                 try:
-                    return [f"{COLORS[number]} {CARRE} {COLOR_RESET}" for number in guess] # type: ignore
+                    return [f"{COLORS[number]} {CARRE} {COLOR_RESET}" for number in self.guess] # type: ignore
                 except KeyError:
                     print("Votre saisie est incorrecte...")   
             else:
                 print("Votre saisie est incorrecte...")
     
-    def evaluate_guess(self, guess) -> list:
+    def evaluate_guess(self) -> None:
         """ Indicates the player how close from the combination his guess is
         """
-        # Create a list in which indications will be added
-        evaluation = []      
+        self.evaluation.clear()      
         # Map colors to compare pairs  
-        color_mapping = list(zip(self.combination, guess))
+        color_mapping = list(zip(self.combination, self.guess))
 
         for color_combination, color_guess in color_mapping:
             if color_combination == color_guess:
                 logging.info(f"PERFECT MATCH : {display_colors(color_combination)} {display_colors(color_guess)}")
-                evaluation.append(f"{COLORS['3']} {PASTILLE} {COLOR_RESET}")
+                self.evaluation.append(f"{COLORS['3']} {PASTILLE} {COLOR_RESET}")
 
             elif color_guess in self.combination:
                 logging.info(f"Simple match: {display_colors(color_guess)}")
-                evaluation.append(f"{COLORS['5']} {PASTILLE} {COLOR_RESET}")
+                self.evaluation.append(f"{COLORS['5']} {PASTILLE} {COLOR_RESET}")
 
             else:
                 logging.info("NO MATCH")
                 
         # Sort indications to return the red dot first and display the result
-        return sorted(evaluation)
+        self.evaluation = sorted(self.evaluation)
         # return f"Indicateurs: {'' ''.join(sorted(evaluation))}"
 
-    def show_guess_result(self, guess: str, evaluation: list):
-        if evaluation:
-            print(f"{display_colors(guess)}   Indicateurs : {'' ''.join(evaluation)}")
+    def show_guess_result(self) -> None:
+        if self.evaluation:
+            print(f"{display_colors(self.guess)}   Indicateurs : {'' ''.join(self.evaluation)}")
         else:
-            print(f"{display_colors(guess)}  Aucune correspondance trouvée")
+            print(f"{display_colors(self.guess)}  Aucune correspondance trouvée")
 
 
 
@@ -86,10 +88,13 @@ if __name__ == "__main__":
     game = Game()
 
     combination = display_colors(game.combination)
+    print(combination)
 
 
-    guess = game.prompt_guess()
-    game.show_guess_result(guess, game.evaluate_guess(guess))
+    game.guess = game.prompt_guess()
+    game.evaluate_guess()
+    print(game.guess)
+    game.show_guess_result()
 
 
     # guess = ['\x1b[95m ■ \x1b[00m', '\x1b[95m ■ \x1b[00m', '\x1b[91m ■ \x1b[00m', '\x1b[97m ■ \x1b[00m']

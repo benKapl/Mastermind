@@ -1,10 +1,18 @@
 from mastermind import Game
+from assets import MENU
 
 if __name__ == "__main__":
-    a = '\x1b[97m ■ \x1b[00m'
-    b = '\x1b[97m ■ \x1b[00m'
+    print(MENU)
 
-    print(a == b)
+    game = Game()
+    while game.countdown > 0:
+        game.guess = game.prompt_guess()
+        game.evaluate_guess()
+        game.show_guess_result()
+        game.countdown -= 1
+
+    
+
 
 
     
