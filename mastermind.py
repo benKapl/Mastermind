@@ -3,9 +3,9 @@ import random
 import sys
 import time
 
-from assets import COLORS, COLOR_RESET, CARRE, PASTILLE, DELIMITER, COUNTDOWN, MENU
+from assets import COLORS, COMBINATION_ACCOUNT, COLOR_RESET, SQUARE, WHITE_DOT, RED_DOT, DELIMITER, COUNTDOWN, MENU
 
-logging.basicConfig(level=logging.WARNING)
+logging.basicConfig(level=logging.DEBUG)
 
 def display_colors(colors_unicode) -> str:
     """Display a iterable of color_codes into a string to represent the colors in terminal
@@ -24,19 +24,30 @@ def display_colors(colors_unicode) -> str:
 class Game:
 
     def __init__(self, countdown) -> None:
-        self.combination = self.generate_combination()
+        self.combination = []
+        self.combination_state = COMBINATION_ACCOUNT
+        self.generate_combination()
+        self.combination_balance = COMBINATION_ACCOUNT
         self.guess = ""
         self.evaluation = []
         self.countdown = countdown
-        self.attempts = 10 - self.countdown
 
-    def generate_combination(self) -> list:
+    @property
+    def attempts(self):
+        return 10 - self.countdown
+
+    def generate_combination(self) -> None:
         """ Generate 4 random colors
 
         Returns:
             list: 4 colors
         """
-        return [f"{random.choice(list(COLORS.values()))} {CARRE} {COLOR_RESET}" for _ in range(4)]
+        for _ in range(4):
+            color = f"{random.choice(list(COLORS.values()))} {SQUARE} {COLOR_RESET}"
+            self.combination.append(color)
+            self.combination_state[color] += 1
+
+        print(self.combination_state)
     
     def prompt_guess(self) -> str:
         """ Ask the player 4 digits, return the digits converted to colors
@@ -45,7 +56,7 @@ class Game:
             self.guess = input("Veuillez saisir vos 4 chiffres pour les couleurs : ")
             if len(self.guess) == 4 and self.guess.isdigit():
                 try:
-                    return [f"{COLORS[number]} {CARRE} {COLOR_RESET}" for number in self.guess] # type: ignore
+                    return [f"{COLORS[number]} {SQUARE} {COLOR_RESET}" for number in self.guess] # type: ignore
                 except KeyError:
                     print("Votre saisie est incorrecte...\n")   
             else:
@@ -54,7 +65,7 @@ class Game:
     def evaluate_guess(self) -> bool:
         """ Indicates the player how close from the combination his guess is
         """
-        self.evaluation.clear()      
+        self.evaluation.clear()    
         # Map colors to compare pairs  
         color_mapping = list(zip(self.combination, self.guess))
 
@@ -62,12 +73,19 @@ class Game:
             if color_combination == color_guess:
                 logging.debug(f" PERFECT MATCH : {display_colors(color_guess)}")
                 # In case of perfect match, add a red dot to self.evaluation
-                self.evaluation.append(f"{COLORS['3']} {PASTILLE} {COLOR_RESET}")
+                self.evaluation.append(RED_DOT)
+                self.combination_balance[color_guess] += 1
+
+                if self.combination_balance[color_guess] > self.combination_state[color_guess]:
+                    self.combination_balance[color_guess] -= 1
+                    self.evaluation.remove(WHITE_DOT)
 
             elif color_guess in self.combination:
                 logging.debug(f" Simple match: {display_colors(color_guess)}")
-                # In case of simple match, add a white dot to self.evaluation
-                self.evaluation.append(f"{COLORS['5']} {PASTILLE} {COLOR_RESET}")
+
+                if self.combination_balance[color_guess] < self.combination_state[color_guess]:
+                     # In case of simple match, add a white dot to self.evaluation
+                    self.evaluation.append(WHITE_DOT)
 
             else:
                 logging.debug(" NO MATCH")
@@ -76,10 +94,7 @@ class Game:
         self.evaluation = sorted(self.evaluation)
 
         # If self evalutation contains 4 red dots, the game is won
-        if self.evaluation == [f"{COLORS['3']} {PASTILLE} {COLOR_RESET}", 
-                               f"{COLORS['3']} {PASTILLE} {COLOR_RESET}", 
-                               f"{COLORS['3']} {PASTILLE} {COLOR_RESET}", 
-                               f"{COLORS['3']} {PASTILLE} {COLOR_RESET}"]:
+        if self.evaluation == [RED_DOT, RED_DOT, RED_DOT, RED_DOT]:
             return True
         else:
             return False
@@ -102,6 +117,7 @@ class Game:
 
     def won(self) -> None:
         """ Display a message in case of win. The message depends on the number of attemps before winning
+        Then propose the user to retry
         """
         if self.attempts == 1:
             display = f"""{DELIMITER}
@@ -117,15 +133,19 @@ Vous avez gagné en {self.attempts} tentatives 🎉
             display = f"{DELIMITER}\nIl s'en est fallu de peu !\nVous avez gagné en 10 tentatives 😅\n{DELIMITER}"
 
         print(display)
+        self.retry()
 
     def failed(self) -> None:
-        """ Display a message in case of failure.
+        """ Display a message in case of failure 
+        and prompt player to retry.
         """ 
         print(f"""{DELIMITER}
 PERDU !
 La bonne combinaison était {display_colors(self.combination)}
 T'es MAUVAIS Jack 👎
 {DELIMITER}""")
+        time.sleep(3)
+        self.retry()
 
     def retry(self) -> None:
         """ Prompt the user to retry the game. 

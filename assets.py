@@ -1,12 +1,3 @@
-YELLOW_1 = "\033[93m"
-BLUE_2 = "\033[0;34m"
-RED_3 = "\033[91m"
-GREEN_4 = "\033[0;32m"
-
-PURPLE_6 = "\033[95m" 
-
-WHITE_5 = "\033[97m"
-
 COLORS = {
     "1": "\033[93m",
     "2": "\033[0;34m",
@@ -18,14 +9,26 @@ COLORS = {
 
 COLOR_RESET = "\033[00m"
 
-CARRE = "\u25A0" # correspondant à ■
-PASTILLE = "\u25CF" # correspondant à ●
+SQUARE = "\u25A0" # correspondant à ■
+DOT = "\u25CF" # correspondant à ●
+
+COMBINATION_ACCOUNT = {
+    f"{COLORS['1']} {SQUARE} {COLOR_RESET}": 0,
+    f"{COLORS['2']} {SQUARE} {COLOR_RESET}": 0,
+    f"{COLORS['3']} {SQUARE} {COLOR_RESET}": 0,
+    f"{COLORS['4']} {SQUARE} {COLOR_RESET}": 0,
+    f"{COLORS['5']} {SQUARE} {COLOR_RESET}": 0,
+    f"{COLORS['6']} {SQUARE} {COLOR_RESET}": 0
+}
+
+WHITE_DOT = f"{COLORS['5']} {DOT} {COLOR_RESET}"
+RED_DOT = f"{COLORS['3']} {DOT} {COLOR_RESET}"
 
 DELIMITER = '*' * 29
 COUNTDOWN = 10
 
-INTRO = (f"{COLORS['1']}{PASTILLE} {COLORS['2']}{PASTILLE} {COLORS['3']}{PASTILLE}{COLOR_RESET} "
-         f"JEU DU MASTERMIND {COLORS['4']}{PASTILLE} {COLORS['5']}{PASTILLE} {COLORS['6']}{PASTILLE}{COLOR_RESET}\n"
+INTRO = (f"{COLORS['1']}{DOT} {COLORS['2']}{DOT} {COLORS['3']}{DOT}{COLOR_RESET} "
+         f"JEU DU MASTERMIND {COLORS['4']}{DOT} {COLORS['5']}{DOT} {COLORS['6']}{DOT}{COLOR_RESET}\n"
 f"""{DELIMITER}
 
 Trouvez la bonne combinaison de quatre couleurs secrètes que notre 'IA' aura généré.
@@ -39,5 +42,5 @@ f"   [3]:{COLORS['3']} Rouge {COLOR_RESET}   [4]:{COLORS['4']} Vert {COLOR_RESET
 f"   [5]:{COLORS['5']} Blanc {COLOR_RESET}   [6]:{COLORS['6']} Magenta {COLOR_RESET}\n"
 
 if __name__ == "__main__":
-    print(f"{COLORS['3']}{CARRE}", f"{COLORS['2']}{PASTILLE}{COLOR_RESET}")
+    print(f"{COLORS['3']}{SQUARE}", f"{COLORS['2']}{DOT}{COLOR_RESET}")
     print(INTRO)

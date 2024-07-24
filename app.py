@@ -6,10 +6,8 @@ from assets import INTRO, COUNTDOWN
 if __name__ == "__main__":
     print(INTRO)
     game = Game(COUNTDOWN)
-    time.sleep(5)
     game.play()
-    time.sleep(3)
-    game.retry()
+
 
 
     
