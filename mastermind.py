@@ -29,7 +29,6 @@ class Game:
         self.evaluation = []
         self.countdown = countdown
         self.attempts = 10 - self.countdown
-        # self.combination = ['\x1b[95m ■ \x1b[00m', '\x1b[95m ■ \x1b[00m', '\x1b[91m ■ \x1b[00m', '\x1b[97m ■ \x1b[00m']
 
     def generate_combination(self) -> list:
         """ Generate 4 random colors
@@ -62,10 +61,12 @@ class Game:
         for color_combination, color_guess in color_mapping:
             if color_combination == color_guess:
                 logging.debug(f" PERFECT MATCH : {display_colors(color_guess)}")
+                # In case of perfect match, add a red dot to self.evaluation
                 self.evaluation.append(f"{COLORS['3']} {PASTILLE} {COLOR_RESET}")
 
             elif color_guess in self.combination:
                 logging.debug(f" Simple match: {display_colors(color_guess)}")
+                # In case of simple match, add a white dot to self.evaluation
                 self.evaluation.append(f"{COLORS['5']} {PASTILLE} {COLOR_RESET}")
 
             else:
@@ -74,6 +75,7 @@ class Game:
         # Sort indications to return the red dot first and display the result
         self.evaluation = sorted(self.evaluation)
 
+        # If self evalutation contains 4 red dots, the game is won
         if self.evaluation == [f"{COLORS['3']} {PASTILLE} {COLOR_RESET}", 
                                f"{COLORS['3']} {PASTILLE} {COLOR_RESET}", 
                                f"{COLORS['3']} {PASTILLE} {COLOR_RESET}", 
@@ -83,20 +85,25 @@ class Game:
             return False
 
     def show_guess_result(self) -> None:
+        """ Display colors chosen by the player at each attemps and the result of evaluation
+        """
         if self.evaluation:
             print(f"{display_colors(self.guess)}   Indicateurs : {'' ''.join(self.evaluation)}")
         else:
             print(f"{display_colors(self.guess)}  Aucune correspondance trouvée")
 
     def show_remaining_attemps(self) -> None:
+        """ Display the number of remaining attemps
+        """
         if self.countdown > 0:
             print(f"Il vous reste {self.countdown} tentative{'s.' if self.countdown > 1 else ' 😱'}\n")
         else:
             print("Vous n'avez plus de tentative 💀\n")
 
-
-
     def won(self) -> None:
+        """ Display a message in case of win. The message depends on the number of attemps before winning
+        Then call the retry method 
+        """
         if self.attempts == 1:
             display = f"""{DELIMITER}
 FELICITATIONS 👏👏👏
@@ -113,9 +120,12 @@ Vous avez gagné en {self.attempts} tentatives 🎉
         print(display)
 
         time.sleep(3)
+        # Prompt the user to retry
         self.retry()
 
     def failed(self) -> None:
+        """ Display a message in case of failure and call the retry method.
+        """ 
         print(f"""{DELIMITER}
 PERDU !
 La bonne combinaison était {display_colors(self.combination)}
@@ -125,6 +135,10 @@ T'es MAUVAIS Jack 👎
         self.retry()
 
     def retry(self) -> None:
+        """ Prompt the user to retry the game. 
+        If positive : creates a new game instance and start playing
+        If negative : exit the program
+        """
         retry = input("Souhaitez-vous rejouer ? [Y/n] ").lower()
         if retry in ["y", "yes"]:
             game = Game(COUNTDOWN)
@@ -136,20 +150,29 @@ T'es MAUVAIS Jack 👎
             print("Entrée incorrecte...")
             self.retry()
 
-    def play(self):
+    def play(self) -> None:
+        """ Manage game workflow """
+
         print(MENU)
         while self.countdown > 0:
+            # Display the expected result (change logging parameters to WARNING for a functionning program) 
             logging.info(f" Combinaison gagnante : {display_colors(self.combination)}")
+            # Prompt the user to choose 4 colors
             self.guess = self.prompt_guess()
+
+            # Evaluate proposal, display result and update countdown
             evaluation = self.evaluate_guess()
             self.show_guess_result()
             self.countdown -= 1
+
+            # If the game is won
             if evaluation:
                 time.sleep(1)
                 self.won()
             
             remaining_attemps = self.show_remaining_attemps()
 
+        # When countdown < 1, the game is lost
         time.sleep(2)
         self.failed()
 
