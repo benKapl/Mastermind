@@ -102,7 +102,6 @@ class Game:
 
     def won(self) -> None:
         """ Display a message in case of win. The message depends on the number of attemps before winning
-        Then call the retry method 
         """
         if self.attempts == 1:
             display = f"""{DELIMITER}
@@ -119,20 +118,14 @@ Vous avez gagné en {self.attempts} tentatives 🎉
 
         print(display)
 
-        time.sleep(3)
-        # Prompt the user to retry
-        self.retry()
-
     def failed(self) -> None:
-        """ Display a message in case of failure and call the retry method.
+        """ Display a message in case of failure.
         """ 
         print(f"""{DELIMITER}
 PERDU !
 La bonne combinaison était {display_colors(self.combination)}
 T'es MAUVAIS Jack 👎
 {DELIMITER}""")
-        time.sleep(3)
-        self.retry()
 
     def retry(self) -> None:
         """ Prompt the user to retry the game. 

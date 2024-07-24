@@ -8,6 +8,7 @@ if __name__ == "__main__":
     game = Game(COUNTDOWN)
     time.sleep(5)
     game.play()
+    time.sleep(3)
     game.retry()
 
 
