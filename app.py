@@ -1,15 +1,15 @@
+import time
+
 from mastermind import Game
-from assets import MENU
+from assets import INTRO, COUNTDOWN
 
 if __name__ == "__main__":
-    print(MENU)
+    print(INTRO)
+    game = Game(COUNTDOWN)
+    time.sleep(5)
+    game.play()
+    game.retry()
 
-    game = Game()
-    while game.countdown > 0:
-        game.guess = game.prompt_guess()
-        game.evaluate_guess()
-        game.show_guess_result()
-        game.countdown -= 1
 
     
 

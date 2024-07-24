@@ -21,16 +21,23 @@ COLOR_RESET = "\033[00m"
 CARRE = "\u25A0" # correspondant à ■
 PASTILLE = "\u25CF" # correspondant à ●
 
+DELIMITER = '*' * 29
+COUNTDOWN = 10
 
-MENU = f"""JEU DU MASTERMIND
+INTRO = (f"{COLORS['1']}{PASTILLE} {COLORS['2']}{PASTILLE} {COLORS['3']}{PASTILLE}{COLOR_RESET} "
+         f"JEU DU MASTERMIND {COLORS['4']}{PASTILLE} {COLORS['5']}{PASTILLE} {COLORS['6']}{PASTILLE}{COLOR_RESET}\n"
+f"""{DELIMITER}
+
 Trouvez la bonne combinaison de quatre couleurs secrètes que notre 'IA' aura généré.
-A chaque couleur bien postionnée, vous aurez en retour un indicateur rouge.
+A chaque couleur bien positionnée, vous aurez en retour un indicateur rouge.
 A chaque couleur présente mais mal positionnée, vous aurez en retour un indicateur blanc.
-Entrez votre combinaison secrète en utilisant les chiffres des couleurs disponibles.""" + \
+Vous avez {COUNTDOWN} tentatives.""")
+
+MENU = f"\nEntrez votre combinaison secrète en utilisant les chiffres des couleurs disponibles." + \
 f"\n[1]:{COLORS['1']} Jaune {COLOR_RESET}   [2]:{COLORS['2']} Bleu {COLOR_RESET}"\
 f"   [3]:{COLORS['3']} Rouge {COLOR_RESET}   [4]:{COLORS['4']} Vert {COLOR_RESET}" \
 f"   [5]:{COLORS['5']} Blanc {COLOR_RESET}   [6]:{COLORS['6']} Magenta {COLOR_RESET}\n"
 
 if __name__ == "__main__":
     print(f"{COLORS['3']}{CARRE}", f"{COLORS['2']}{PASTILLE}{COLOR_RESET}")
-    print(MENU)
+    print(INTRO)
