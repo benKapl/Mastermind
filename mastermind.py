@@ -3,7 +3,7 @@ import random
 import sys
 import time
 
-from assets import COLORS, combination_account, COLOR_RESET, SQUARE, WHITE_DOT, RED_DOT, DELIMITER, countdown, MENU
+from assets import INTRO, COLORS, combination_account, COLOR_RESET, SQUARE, WHITE_DOT, RED_DOT, DELIMITER, countdown, MENU
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -191,4 +191,6 @@ T'es MAUVAIS Jack 👎
 
 
 if __name__ == "__main__":
-    pass
+    print(INTRO)
+    game = Game(countdown)
+    game.play()
