@@ -5,7 +5,7 @@ import time
 
 from assets import INTRO, COLORS, COLOR_RESET, SQUARE, WHITE_DOT, RED_DOT, DELIMITER, countdown, MENU
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.WARNING)
 
 def display_colors(colors_unicode) -> str:
     """Display a iterable of color_codes into a string to represent the colors in terminal
@@ -53,14 +53,15 @@ class Game:
                     print("Votre saisie est incorrecte...\n")   
             else:
                 print("Votre saisie est incorrecte...\n")
-    
-    def evaluate_guess(self) -> bool:
-        """ Indicates the player how close from the combination his guess is
+
+    def count_perfect_matches(self) -> list:
+        """ Count perfect match and return a list of the remaning colors to evaluate
+
+        Returns:
+            list: A list of two tuples : the remaning colors of the combination and the remaning colors of the guess
         """
-        self.evaluation.clear()    
-        # Map colors to compare pairs  
-        color_mapping = list(zip(self.combination, self.guess))
         unperfect_matches = []
+        color_mapping = list(zip(self.combination, self.guess))
 
         for color_pair in color_mapping:
             if color_pair[0] == color_pair[1]:
@@ -70,19 +71,41 @@ class Game:
             else:
                 unperfect_matches.append(color_pair)
         
-        remaining_colors = list(zip(*unperfect_matches))
+        # Unzip unperfect_matches to get the two original list with the perfect matches removed
+        return list(zip(*unperfect_matches))
+
+    def count_simple_matches(self, remaining_colors: list) -> None:
+        """Count simple matches from a list where color matching perfectly were removed
+
+        Args:
+            remaining_colors (list): colors that do not match perfectly
+        """
         remaining_combination = list(remaining_colors[0])
         remaining_guess = list(remaining_colors[1])
 
         for color in remaining_guess:
             if color in remaining_combination:
+                logging.debug(f" SIMPLE MATCH : {display_colors(color)}")                
                 self.evaluation.append(WHITE_DOT)
+                # remove color to avoir counting it twice
                 remaining_combination.remove(color)
+    
+    def evaluate_guess(self) -> bool:
+        """ Indicates the player how close from the combination his guess is
+        Returns True if the guess equals the combination
+        Returns False otherwise
+
+        """
+        self.evaluation.clear()    
+        # Count perfect matches
+        remaining_colors = self.count_perfect_matches()
 
         # If self evalutation contains 4 red dots, the game is won
         if self.evaluation == [RED_DOT, RED_DOT, RED_DOT, RED_DOT]:
             return True
         else:
+            # If not all matches are perfect, count simple ones
+            self.count_simple_matches(remaining_colors)
             return False
 
     def show_guess_result(self) -> None:
