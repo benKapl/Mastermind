@@ -12,15 +12,6 @@ COLOR_RESET = "\033[00m"
 SQUARE = "\u25A0" # correspondant à ■
 DOT = "\u25CF" # correspondant à ●
 
-combination_account = {
-    f"{COLORS['1']} {SQUARE} {COLOR_RESET}": 0,
-    f"{COLORS['2']} {SQUARE} {COLOR_RESET}": 0,
-    f"{COLORS['3']} {SQUARE} {COLOR_RESET}": 0,
-    f"{COLORS['4']} {SQUARE} {COLOR_RESET}": 0,
-    f"{COLORS['5']} {SQUARE} {COLOR_RESET}": 0,
-    f"{COLORS['6']} {SQUARE} {COLOR_RESET}": 0
-}
-
 WHITE_DOT = f"{COLORS['5']} {DOT} {COLOR_RESET}"
 RED_DOT = f"{COLORS['3']} {DOT} {COLOR_RESET}"
 
@@ -33,8 +24,7 @@ f"""{DELIMITER}
 
 Trouvez la bonne combinaison de quatre couleurs secrètes que notre 'IA' aura généré.
 A chaque couleur bien positionnée, vous aurez en retour un indicateur rouge.
-A chaque couleur présente mais mal positionnée, vous aurez en retour un indicateur blanc.
-Vous avez {countdown} tentatives.""")
+A chaque couleur présente mais mal positionnée, vous aurez en retour un indicateur blanc.""")
 
 MENU = f"\nEntrez votre combinaison secrète en utilisant les chiffres des couleurs disponibles." + \
 f"\n[1]:{COLORS['1']} Jaune {COLOR_RESET}   [2]:{COLORS['2']} Bleu {COLOR_RESET}"\

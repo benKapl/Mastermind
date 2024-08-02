@@ -28,6 +28,7 @@ class Game:
         self.guess = ""
         self.evaluation = []
         self.countdown = countdown
+        self.finished = False
 
     @property
     def attempts(self):
@@ -111,66 +112,42 @@ class Game:
     def show_guess_result(self) -> None:
         """ Display colors chosen by the player at each attemps and the result of evaluation
         """
-        if self.evaluation:
-            print(f"{display_colors(self.guess)}   Indicateurs : {'' ''.join(self.evaluation)}")
-        else:
-            print(f"{display_colors(self.guess)}  Aucune correspondance trouvée")
+        print(f"{display_colors(self.guess)}   Indicateurs : {'' ''.join(self.evaluation)}" if self.evaluation else f"{display_colors(self.guess)}  Aucune correspondance trouvée")
 
     def show_remaining_attemps(self) -> None:
         """ Display the number of remaining attemps
         """
-        if self.countdown > 0:
-            print(f"Il vous reste {self.countdown} tentative{'s.' if self.countdown > 1 else ' 😱'}\n")
-        else:
-            print("Vous n'avez plus de tentative 💀\n")
+        print(f"Il vous reste {self.countdown} tentative{'s.' if self.countdown > 1 else ' 😱'}\n" if self.countdown > 0 else "Vous n'avez plus de tentative 💀")
 
     def won(self) -> None:
         """ Display a message in case of win. The message depends on the number of attemps before winning
         Then propose the user to retry
         """
         if self.attempts == 1:
-            display = f"""{DELIMITER}
+            display = f"""\n{DELIMITER}
 FELICITATIONS 👏👏👏
 Vous avez gagné du premier coup 😮
-{DELIMITER}"""
+{DELIMITER}\n"""
         elif 2 <= self.attempts < 10:
-            display = f"""{DELIMITER}
+            display = f"""\n{DELIMITER}
 Bravo !
 Vous avez gagné en {self.attempts} tentatives 🎉
-{DELIMITER}"""
+{DELIMITER}\n"""
         else:
-            display = f"{DELIMITER}\nIl s'en est fallu de peu !\nVous avez gagné en 10 tentatives 😅\n{DELIMITER}"
+            display = f"\n{DELIMITER}\nIl s'en est fallu de peu !\nVous avez gagné en 10 tentatives 😅\n{DELIMITER}\n"
 
         print(display)
-        self.retry()
 
     def failed(self) -> None:
         """ Display a message in case of failure 
         and prompt player to retry.
         """ 
-        print(f"""{DELIMITER}
+        print(f"""\n{DELIMITER}
 PERDU !
 La bonne combinaison était {display_colors(self.combination)}
 T'es MAUVAIS Jack 👎
-{DELIMITER}""")
+{DELIMITER}\n""")
         time.sleep(3)
-        self.retry()
-
-    def retry(self) -> None:
-        """ Prompt the user to retry the game. 
-        If positive : creates a new game instance and start playing
-        If negative : exit the program
-        """
-        retry = input("Souhaitez-vous rejouer ? [Y/n] ").lower()
-        if retry in ["y", "yes"]:
-            game = Game(countdown)
-            game.play()
-        elif retry in ["n", "no"]:
-            print("A bientôt 👋")
-            sys.exit()
-        else:
-            print("Entrée incorrecte...")
-            self.retry()
 
     def play(self) -> None:
         """ Manage game workflow """
@@ -191,15 +168,29 @@ T'es MAUVAIS Jack 👎
             if evaluation:
                 time.sleep(1)
                 self.won()
+                break
             
-            remaining_attemps = self.show_remaining_attemps()
+            self.show_remaining_attemps()
 
-        # When countdown < 1, the game is lost
-        time.sleep(2)
-        self.failed()
+        # if the combination was not found and the countdown < 1, the game is lost
+        if not evaluation:
+            time.sleep(2)
+            self.failed()
 
 
 if __name__ == "__main__":
     print(INTRO)
-    game = Game(countdown)
-    game.play()
+    while True:
+        game = Game(countdown).play()
+
+        while True:
+            retry = input("Souhaitez-vous rejouer ? [Y/n] ").lower()
+            if retry in ["y", "yes"]:
+                break
+            elif retry in ["n", "no"]:
+                print("A bientôt 👋")
+                time.sleep(2)
+                sys.exit()
+            else:
+                print("Entrée incorrecte...")
+                continue
