@@ -3,7 +3,7 @@ import random
 import sys
 import time
 
-from assets import INTRO, COLORS, combination_account, COLOR_RESET, SQUARE, WHITE_DOT, RED_DOT, DELIMITER, countdown, MENU
+from assets import INTRO, COLORS, COLOR_RESET, SQUARE, WHITE_DOT, RED_DOT, DELIMITER, countdown, MENU
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -24,10 +24,7 @@ def display_colors(colors_unicode) -> str:
 class Game:
 
     def __init__(self, countdown) -> None:
-        self.combination = []
-        self.combination_state = combination_account
-        self.generate_combination()
-        self.combination_balance = combination_account
+        self.combination = self.generate_combination()
         self.guess = ""
         self.evaluation = []
         self.countdown = countdown
@@ -36,18 +33,13 @@ class Game:
     def attempts(self):
         return 10 - self.countdown
 
-    def generate_combination(self) -> None:
+    def generate_combination(self) -> list:
         """ Generate 4 random colors
 
         Returns:
             list: 4 colors
         """
-        for _ in range(4):
-            color = f"{random.choice(list(COLORS.values()))} {SQUARE} {COLOR_RESET}"
-            self.combination.append(color)
-            self.combination_state[color] += 1
-
-        print(self.combination_state)
+        return [f"{random.choice(list(COLORS.values()))} {SQUARE} {COLOR_RESET}" for _ in range(4)]
     
     def prompt_guess(self) -> str:
         """ Ask the player 4 digits, return the digits converted to colors
@@ -68,30 +60,24 @@ class Game:
         self.evaluation.clear()    
         # Map colors to compare pairs  
         color_mapping = list(zip(self.combination, self.guess))
+        unperfect_matches = []
 
-        for color_combination, color_guess in color_mapping:
-            if color_combination == color_guess:
-                logging.debug(f" PERFECT MATCH : {display_colors(color_guess)}")
+        for color_pair in color_mapping:
+            if color_pair[0] == color_pair[1]:
+                logging.debug(f" PERFECT MATCH : {display_colors(color_pair[1])}")
                 # In case of perfect match, add a red dot to self.evaluation
                 self.evaluation.append(RED_DOT)
-                self.combination_balance[color_guess] += 1
-
-                if self.combination_balance[color_guess] > self.combination_state[color_guess]:
-                    self.combination_balance[color_guess] -= 1
-                    self.evaluation.remove(WHITE_DOT)
-
-            elif color_guess in self.combination:
-                logging.debug(f" Simple match: {display_colors(color_guess)}")
-
-                if self.combination_balance[color_guess] < self.combination_state[color_guess]:
-                     # In case of simple match, add a white dot to self.evaluation
-                    self.evaluation.append(WHITE_DOT)
-
             else:
-                logging.debug(" NO MATCH")
-                
-        # Sort indications to return the red dot first and display the result
-        self.evaluation = sorted(self.evaluation)
+                unperfect_matches.append(color_pair)
+        
+        remaining_colors = list(zip(*unperfect_matches))
+        remaining_combination = list(remaining_colors[0])
+        remaining_guess = list(remaining_colors[1])
+
+        for color in remaining_guess:
+            if color in remaining_combination:
+                self.evaluation.append(WHITE_DOT)
+                remaining_combination.remove(color)
 
         # If self evalutation contains 4 red dots, the game is won
         if self.evaluation == [RED_DOT, RED_DOT, RED_DOT, RED_DOT]:
