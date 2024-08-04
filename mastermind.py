@@ -47,11 +47,9 @@ class Game:
         """
         while True:
             self.guess = input("Veuillez saisir vos 4 chiffres pour les couleurs : ")
-            if len(self.guess) == 4 and self.guess.isdigit():
-                try:
-                    return [f"{COLORS[number]} {SQUARE} {COLOR_RESET}" for number in self.guess] # type: ignore
-                except KeyError:
-                    print("Votre saisie est incorrecte...\n")   
+            # Check that user guess contains 4 digit characters all strictly below 7
+            if len(self.guess) == 4 and self.guess.isdigit() and all(int(digit) < 7 for digit in self.guess):
+                return [f"{COLORS[number]} {SQUARE} {COLOR_RESET}" for number in self.guess] # type: ignore
             else:
                 print("Votre saisie est incorrecte...\n")
 
