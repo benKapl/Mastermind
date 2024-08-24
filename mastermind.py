@@ -1,11 +1,35 @@
+from enum import Enum
 import logging
 import random
 import sys
 import time
 
-from assets import INTRO, COLORS, COLOR_RESET, SQUARE, WHITE_DOT, RED_DOT, DELIMITER, countdown, MENU
+from colorama import Fore
 
 logging.basicConfig(level=logging.WARNING)
+
+class Constant(Enum):
+    SQUARE = "\u25A0" # correspondant à ■
+    DOT = "\u25CF" # correspondant à ●
+    RED_DOT = Fore.RED + '\u25CF' + Fore.RESET
+    DELIMITER = '*' * 29
+    COUNTDOWN = "10"
+
+class Message(Enum):
+    INTRO = (f"{Fore.YELLOW}{Constant.DOT.value} {Fore.BLUE}{Constant.DOT.value} {Fore.RED}{Constant.DOT.value}{Fore.RESET} "
+         f"JEU DU MASTERMIND {Fore.GREEN}{Constant.DOT.value} {Fore.WHITE}{Constant.DOT.value} {Fore.MAGENTA}{Constant.DOT.value}{Fore.RESET}\n"
+f"""{Constant.DELIMITER.value}
+
+Trouvez la bonne combinaison de quatre couleurs secrètes que notre 'IA' aura généré.
+A chaque couleur bien positionnée, vous aurez en retour un indicateur rouge.
+A chaque couleur présente mais mal positionnée, vous aurez en retour un indicateur blanc.
+Vous avez {Constant.COUNTDOWN.value} tentatives.""")
+
+    MENU = f"\nEntrez votre combinaison secrète en utilisant les chiffres des couleurs disponibles." + \
+f"\n[1]:{Fore.YELLOW} Jaune {Fore.RESET}   [2]:{Fore.BLUE} Bleu {Fore.RESET}"\
+f"   [3]:{Fore.RED} Rouge {Fore.RESET}   [4]:{Fore.GREEN} Vert {Fore.RESET}" \
+f"   [5]:{Fore.WHITE} Blanc {Fore.RESET}   [6]:{Fore.MAGENTA} Magenta {Fore.RESET}\n"
+    
 
 def display_colors(colors_unicode) -> str:
     """Display a iterable of color_codes into a string to represent the colors in terminal
@@ -22,12 +46,22 @@ def display_colors(colors_unicode) -> str:
     return display
 
 class Game:
+    COUNTDOWN = int(Constant.COUNTDOWN.value)
+    
+    COLORS = {
+    "1": Fore.YELLOW,
+    "2": Fore.BLUE,
+    "3": Fore.RED,
+    "4": Fore.GREEN,
+    "5": Fore.WHITE,
+    "6": Fore.MAGENTA
+}
 
-    def __init__(self, countdown) -> None:
+    def __init__(self) -> None:
         self.combination = self.generate_combination()
         self.guess = ""
         self.evaluation = []
-        self.countdown = countdown
+        self.countdown = Game.COUNTDOWN
         self.finished = False
 
     @property
@@ -40,7 +74,7 @@ class Game:
         Returns:
             list: 4 colors
         """
-        return [f"{random.choice(list(COLORS.values()))} {SQUARE} {COLOR_RESET}" for _ in range(4)]
+        return [f"{random.choice(list(Game.COLORS.values()))} {Constant.SQUARE.value} {Fore.RESET}" for _ in range(4)]
     
     def prompt_guess(self) -> str:
         """ Ask the player 4 digits, return the digits converted to colors
@@ -49,29 +83,30 @@ class Game:
             self.guess = input("Veuillez saisir vos 4 chiffres pour les couleurs : ")
             # Check that user guess contains 4 digit characters all strictly below 7
             if len(self.guess) == 4 and self.guess.isdigit() and all(int(digit) < 7 for digit in self.guess):
-                return [f"{COLORS[number]} {SQUARE} {COLOR_RESET}" for number in self.guess] # type: ignore
+                return [f"{Game.COLORS[number]} {Constant.SQUARE.value} {Fore.RESET}" for number in self.guess] # type: ignore
             else:
                 print("Votre saisie est incorrecte...\n")
 
     def count_perfect_matches(self) -> list:
-        """ Count perfect match and return a list of the remaning colors to evaluate
+        """ Count perfect matches and return a list of the remaning colors to evaluate
 
         Returns:
-            list: A list of two tuples : the remaning colors of the combination and the remaning colors of the guess
+            list: A list of two tuples : the colors of the combination and the colors of the guess 
+                                         without the colors that perfectly matched
         """
-        unperfect_matches = []
+        no_perfect_matches = []
         color_mapping = list(zip(self.combination, self.guess))
 
         for color_pair in color_mapping:
             if color_pair[0] == color_pair[1]:
                 logging.debug(f" PERFECT MATCH : {display_colors(color_pair[1])}")
                 # In case of perfect match, add a red dot to self.evaluation
-                self.evaluation.append(RED_DOT)
+                self.evaluation.append(Constant.RED_DOT.value)
             else:
-                unperfect_matches.append(color_pair)
+                no_perfect_matches.append(color_pair)
         
-        # Unzip unperfect_matches to get the two original list with the perfect matches removed
-        return list(zip(*unperfect_matches))
+        # Unzip no_perfect_matches to get the two original list without the colors that perfectly matched
+        return list(zip(*no_perfect_matches))
 
     def count_simple_matches(self, remaining_colors: list) -> None:
         """Count simple matches from a list where color matching perfectly were removed
@@ -85,7 +120,7 @@ class Game:
         for color in remaining_guess:
             if color in remaining_combination:
                 logging.debug(f" SIMPLE MATCH : {display_colors(color)}")                
-                self.evaluation.append(WHITE_DOT)
+                self.evaluation.append(Constant.DOT.value)
                 # remove color to avoir counting it twice
                 remaining_combination.remove(color)
     
@@ -95,12 +130,14 @@ class Game:
         Returns False otherwise
 
         """
-        self.evaluation.clear()    
-        # Count perfect matches
+        # Empty self.evaluation that might be filled with previous guessing attempts
+        self.evaluation.clear()
+
+        # Count perfect matches and store the remaining_colors in a variable
         remaining_colors = self.count_perfect_matches()
 
         # If self evalutation contains 4 red dots, the game is won
-        if self.evaluation == [RED_DOT, RED_DOT, RED_DOT, RED_DOT]:
+        if "".join(self.evaluation) == Constant.RED_DOT.value*4:
             return True
         else:
             # If not all matches are perfect, count simple ones
@@ -118,46 +155,44 @@ class Game:
         print(f"Il vous reste {self.countdown} tentative{'s.' if self.countdown > 1 else ' 😱'}\n" if self.countdown > 0 else "Vous n'avez plus de tentative 💀")
 
     def won(self) -> None:
-        """ Display a message in case of win. The message depends on the number of attemps before winning
-        Then propose the user to retry
+        """ Displays a message in case of win. The message depends on the number of attemps before winning
         """
         if self.attempts == 1:
-            display = f"""\n{DELIMITER}
+            display = f"""\n{Constant.DELIMITER.value}
 FELICITATIONS 👏👏👏
 Vous avez gagné du premier coup 😮
-{DELIMITER}\n"""
+{Constant.DELIMITER.value}\n"""
         elif 2 <= self.attempts < 10:
-            display = f"""\n{DELIMITER}
+            display = f"""\n{Constant.DELIMITER.value}
 Bravo !
 Vous avez gagné en {self.attempts} tentatives 🎉
-{DELIMITER}\n"""
+{Constant.DELIMITER.value}\n"""
         else:
-            display = f"\n{DELIMITER}\nIl s'en est fallu de peu !\nVous avez gagné en 10 tentatives 😅\n{DELIMITER}\n"
+            display = f"\n{Constant.DELIMITER.value}\nIl s'en est fallu de peu !\nVous avez gagné en 10 tentatives 😅\n{Constant.DELIMITER.value}\n"
 
         print(display)
 
     def failed(self) -> None:
-        """ Display a message in case of failure 
-        and prompt player to retry.
+        """ Displays a message in case of failure.
         """ 
-        print(f"""\n{DELIMITER}
+        print(f"""\n{Constant.DELIMITER.value}
 PERDU !
 La bonne combinaison était {display_colors(self.combination)}
 T'es MAUVAIS Jack 👎
-{DELIMITER}\n""")
+{Constant.DELIMITER.value}\n""")
         time.sleep(3)
 
     def play(self) -> None:
         """ Manage game workflow """
 
-        print(MENU)
+        print(Message.MENU.value)
         while self.countdown > 0:
-            # Display the expected result (change logging parameters to WARNING for a functionning program) 
+            # Displays the expected result (change logging parameters to WARNING for a functionning program) 
             logging.info(f" Combinaison gagnante : {display_colors(self.combination)}")
             # Prompt the user to choose 4 colors
             self.guess = self.prompt_guess()
 
-            # Evaluate proposal, display result and update countdown
+            # Evaluates proposal, displays result and updates countdown
             evaluation = self.evaluate_guess()
             self.show_guess_result()
             self.countdown -= 1
@@ -177,9 +212,9 @@ T'es MAUVAIS Jack 👎
 
 
 if __name__ == "__main__":
-    print(INTRO)
+    print(Message.INTRO.value)
     while True:
-        game = Game(countdown).play()
+        game = Game().play()
 
         while True:
             retry = input("Souhaitez-vous rejouer ? [Y/n] ").lower()
