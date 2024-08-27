@@ -14,13 +14,14 @@ class Constant(Enum):
     RED_DOT = Fore.RED + '\u25CF' + Fore.RESET
     DELIMITER = '*' * 29
     COUNTDOWN = "10"
+    COLORS_NUMBER = "4"
 
 class Message(Enum):
     INTRO = (f"{Fore.YELLOW}{Constant.DOT.value} {Fore.BLUE}{Constant.DOT.value} {Fore.RED}{Constant.DOT.value}{Fore.RESET} "
          f"JEU DU MASTERMIND {Fore.GREEN}{Constant.DOT.value} {Fore.WHITE}{Constant.DOT.value} {Fore.MAGENTA}{Constant.DOT.value}{Fore.RESET}\n"
 f"""{Constant.DELIMITER.value}
 
-Trouvez la bonne combinaison de quatre couleurs secrètes que notre 'IA' aura généré.
+Trouvez la bonne combinaison de {Constant.COLORS_NUMBER.value} couleurs secrètes que notre 'IA' aura généré.
 A chaque couleur bien positionnée, vous aurez en retour un indicateur rouge.
 A chaque couleur présente mais mal positionnée, vous aurez en retour un indicateur blanc.
 Vous avez {Constant.COUNTDOWN.value} tentatives.""")
@@ -47,6 +48,7 @@ def display_colors(colors_unicode) -> str:
 
 class Game:
     COUNTDOWN = int(Constant.COUNTDOWN.value)
+    COLORS_NUMBER = int(Constant.COLORS_NUMBER.value)
     
     COLORS = {
     "1": Fore.YELLOW,
@@ -69,20 +71,20 @@ class Game:
         return 10 - self.countdown
 
     def generate_combination(self) -> list:
-        """ Generate 4 random colors
+        """ Generate random colors equal to Game.COLORS_NUMBER
 
         Returns:
-            list: 4 colors
+            list: N colors (N is equal to Game.COLORS_NUMBER)
         """
-        return [f"{random.choice(list(Game.COLORS.values()))} {Constant.SQUARE.value} {Fore.RESET}" for _ in range(4)]
+        return [f"{random.choice(list(Game.COLORS.values()))} {Constant.SQUARE.value} {Fore.RESET}" for _ in range(Game.COLORS_NUMBER)]
     
     def prompt_guess(self) -> str:
-        """ Ask the player 4 digits, return the digits converted to colors
+        """ Ask the player a number of digits equal to Game.COLORS_NUMBER, return the digits converted to colors
         """
         while True:
-            self.guess = input("Veuillez saisir vos 4 chiffres pour les couleurs : ")
+            self.guess = input(f"Veuillez saisir vos {Game.COLORS_NUMBER} chiffres pour les couleurs : ")
             # Check that user guess contains 4 digit characters all strictly below 7
-            if len(self.guess) == 4 and self.guess.isdigit() and all(int(digit) < 7 for digit in self.guess):
+            if len(self.guess) == Game.COLORS_NUMBER and self.guess.isdigit() and all(int(digit) < 7 for digit in self.guess):
                 return [f"{Game.COLORS[number]} {Constant.SQUARE.value} {Fore.RESET}" for number in self.guess] # type: ignore
             else:
                 print("Votre saisie est incorrecte...\n")
